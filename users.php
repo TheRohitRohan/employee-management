@@ -3,7 +3,7 @@ require_once 'includes/config.php';
 require_once 'includes/functions.php';
 
 // Check if user is logged in and is admin
-if (!isLoggedIn() || $_SESSION['role'] !== 'admin') {
+if (!isLoggedIn() || !isAdmin()) {
     redirect('login.php');
 }
 
@@ -56,81 +56,24 @@ $users = $stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Users - Employee Management System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .sidebar {
-            min-height: 100vh;
-            background-color: #343a40;
-            padding-top: 20px;
-        }
-        .sidebar a {
-            color: #fff;
-            text-decoration: none;
-            padding: 10px 15px;
-            display: block;
-        }
-        .sidebar a:hover {
-            background-color: #495057;
-        }
-        .sidebar .active {
-            background-color: #007bff;
-        }
-        .main-content {
-            padding: 20px;
-        }
-    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar">
-                <h3 class="text-white text-center mb-4">EMS</h3>
-                <nav>
-                    <a href="dashboard.php">
-                        <i class="bi bi-speedometer2"></i> Dashboard
-                    </a>
-                    <a href="employees.php">
-                        <i class="bi bi-people"></i> Employees
-                    </a>
-                    <a href="add_employee.php">
-                        <i class="bi bi-person-plus"></i> Add Employee
-                    </a>
-                    <a href="users.php" class="active">
-                        <i class="bi bi-person-gear"></i> Users
-                    </a>
-                    <a href="logout.php">
-                        <i class="bi bi-box-arrow-right"></i> Logout
-                    </a>
-                </nav>
-            </div>
+            <?php include 'includes/sidebar.php'; ?>
 
             <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Users</h2>
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">User Management</h1>
                     <a href="add_user.php" class="btn btn-primary">
-                        <i class="bi bi-person-plus"></i> Add New User
+                        <i class="fas fa-user-plus"></i> Add New User
                     </a>
                 </div>
 
-                <?php if (isset($_SESSION['success'])): ?>
-                    <div class="alert alert-success">
-                        <?php 
-                        echo $_SESSION['success'];
-                        unset($_SESSION['success']);
-                        ?>
-                    </div>
-                <?php endif; ?>
-
-                <?php if (isset($_SESSION['error'])): ?>
-                    <div class="alert alert-danger">
-                        <?php 
-                        echo $_SESSION['error'];
-                        unset($_SESSION['error']);
-                        ?>
-                    </div>
-                <?php endif; ?>
+                <?php echo displayMessage(); ?>
 
                 <!-- Search and Filter -->
                 <div class="card mb-4">
@@ -149,7 +92,9 @@ $users = $stmt->fetchAll();
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary w-100">Search</button>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -166,41 +111,33 @@ $users = $stmt->fetchAll();
                                         <th>Username</th>
                                         <th>Email</th>
                                         <th>Role</th>
-                                        <th>Created At</th>
+                                        <th>Last Login</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php if (empty($users)): ?>
+                                    <?php foreach ($users as $user): ?>
                                     <tr>
-                                        <td colspan="6" class="text-center">No users found</td>
+                                        <td><?php echo htmlspecialchars($user['id']); ?></td>
+                                        <td><?php echo htmlspecialchars($user['username']); ?></td>
+                                        <td><?php echo htmlspecialchars($user['email']); ?></td>
+                                        <td>
+                                            <span class="badge bg-<?php echo $user['role'] === 'admin' ? 'danger' : 'primary'; ?>">
+                                                <?php echo ucfirst(htmlspecialchars($user['role'])); ?>
+                                            </span>
+                                        </td>
+                                        <td><?php echo $user['last_login'] ? date('Y-m-d H:i', strtotime($user['last_login'])) : 'Never'; ?></td>
+                                        <td>
+                                            <a href="edit_user.php?id=<?php echo $user['id']; ?>" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    onclick="confirmDelete(<?php echo $user['id']; ?>)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
                                     </tr>
-                                    <?php else: ?>
-                                        <?php foreach ($users as $user): ?>
-                                        <tr>
-                                            <td><?php echo $user['id']; ?></td>
-                                            <td><?php echo htmlspecialchars($user['username']); ?></td>
-                                            <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                            <td>
-                                                <span class="badge bg-<?php echo $user['role'] === 'admin' ? 'danger' : 'primary'; ?>">
-                                                    <?php echo ucfirst($user['role']); ?>
-                                                </span>
-                                            </td>
-                                            <td><?php echo date('M d, Y', strtotime($user['created_at'])); ?></td>
-                                            <td>
-                                                <a href="edit_user.php?id=<?php echo $user['id']; ?>" class="btn btn-sm btn-primary">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <?php if ($user['id'] !== $_SESSION['user_id']): ?>
-                                                <button type="button" class="btn btn-sm btn-danger" 
-                                                        onclick="confirmDelete(<?php echo $user['id']; ?>)">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
+                                    <?php endforeach; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -221,7 +158,7 @@ $users = $stmt->fetchAll();
                         <?php endif; ?>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
 
@@ -244,11 +181,12 @@ $users = $stmt->fetchAll();
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function confirmDelete(id) {
+        function confirmDelete(userId) {
             const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            document.getElementById('deleteButton').href = 'delete_user.php?id=' + id;
+            document.getElementById('deleteButton').href = `delete_user.php?id=${userId}`;
             modal.show();
         }
     </script>

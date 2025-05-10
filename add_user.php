@@ -3,18 +3,18 @@ require_once 'includes/config.php';
 require_once 'includes/functions.php';
 
 // Check if user is logged in and is admin
-if (!isLoggedIn() || $_SESSION['role'] !== 'admin') {
+if (!isLoggedIn() || !isAdmin()) {
     redirect('login.php');
 }
 
 $error = '';
 $success = '';
 
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid request';
     } else {
-        // Get and sanitize input
         $username = sanitize($_POST['username'] ?? '');
         $email = sanitize($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
@@ -22,16 +22,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $role = sanitize($_POST['role'] ?? 'user');
 
         // Validate input
-        if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
+        if (empty($username) || empty($email) || empty($password)) {
             $error = 'Please fill in all required fields';
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error = 'Invalid email format';
-        } elseif (strlen($password) < 6) {
-            $error = 'Password must be at least 6 characters long';
+            $error = 'Please enter a valid email address';
         } elseif ($password !== $confirm_password) {
             $error = 'Passwords do not match';
+        } elseif (strlen($password) < 6) {
+            $error = 'Password must be at least 6 characters long';
         } else {
-            // Database connection
             require_once 'includes/db.php';
             $database = new Database();
             $conn = $database->getConnection();
@@ -45,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     // Hash password
                     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
+                    
                     // Insert new user
                     $stmt = $conn->prepare("
                         INSERT INTO users (username, email, password, role, created_at) 
@@ -74,61 +73,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add User - Employee Management System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .sidebar {
-            min-height: 100vh;
-            background-color: #343a40;
-            padding-top: 20px;
-        }
-        .sidebar a {
-            color: #fff;
-            text-decoration: none;
-            padding: 10px 15px;
-            display: block;
-        }
-        .sidebar a:hover {
-            background-color: #495057;
-        }
-        .sidebar .active {
-            background-color: #007bff;
-        }
-        .main-content {
-            padding: 20px;
-        }
-    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar">
-                <h3 class="text-white text-center mb-4">EMS</h3>
-                <nav>
-                    <a href="dashboard.php">
-                        <i class="bi bi-speedometer2"></i> Dashboard
-                    </a>
-                    <a href="employees.php">
-                        <i class="bi bi-people"></i> Employees
-                    </a>
-                    <a href="add_employee.php">
-                        <i class="bi bi-person-plus"></i> Add Employee
-                    </a>
-                    <a href="users.php" class="active">
-                        <i class="bi bi-person-gear"></i> Users
-                    </a>
-                    <a href="logout.php">
-                        <i class="bi bi-box-arrow-right"></i> Logout
-                    </a>
-                </nav>
-            </div>
+            <?php include 'includes/sidebar.php'; ?>
 
             <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Add New User</h2>
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Add New User</h1>
                     <a href="users.php" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to Users
+                        <i class="fas fa-arrow-left"></i> Back to Users
                     </a>
                 </div>
 
@@ -142,32 +100,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="card">
                     <div class="card-body">
-                        <form method="POST" action="">
+                        <form method="POST" class="needs-validation" novalidate>
                             <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                             
                             <div class="mb-3">
                                 <label for="username" class="form-label">Username</label>
                                 <input type="text" class="form-control" id="username" name="username" 
                                        value="<?php echo htmlspecialchars($username ?? ''); ?>" required>
+                                <div class="invalid-feedback">Please enter a username</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="email" name="email" 
                                        value="<?php echo htmlspecialchars($email ?? ''); ?>" required>
+                                <div class="invalid-feedback">Please enter a valid email address</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" 
-                                       value="<?php echo htmlspecialchars($password ?? ''); ?>" required>
-                                <div class="form-text">Password must be at least 6 characters long</div>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <div class="invalid-feedback">Please enter a password</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="confirm_password" class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
-                                       value="<?php echo htmlspecialchars($confirm_password ?? ''); ?>" required>
+                                <input type="password" class="form-control" id="confirm_password" 
+                                       name="confirm_password" required>
+                                <div class="invalid-feedback">Please confirm your password</div>
                             </div>
 
                             <div class="mb-3">
@@ -176,20 +136,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <option value="user" <?php echo ($role ?? '') === 'user' ? 'selected' : ''; ?>>User</option>
                                     <option value="admin" <?php echo ($role ?? '') === 'admin' ? 'selected' : ''; ?>>Admin</option>
                                 </select>
+                                <div class="invalid-feedback">Please select a role</div>
                             </div>
 
-                            <div class="text-end">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-person-plus"></i> Add User
-                                </button>
-                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save User
+                            </button>
                         </form>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
 </body>
 </html> 

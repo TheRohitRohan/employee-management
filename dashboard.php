@@ -18,59 +18,16 @@ $role = $_SESSION['role'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Employee Management System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .sidebar {
-            min-height: 100vh;
-            background-color: #343a40;
-            padding-top: 20px;
-        }
-        .sidebar a {
-            color: #fff;
-            text-decoration: none;
-            padding: 10px 15px;
-            display: block;
-        }
-        .sidebar a:hover {
-            background-color: #495057;
-        }
-        .sidebar .active {
-            background-color: #007bff;
-        }
-        .main-content {
-            padding: 20px;
-        }
-    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar">
-                <h3 class="text-white text-center mb-4">EMS</h3>
-                <nav>
-                    <a href="dashboard.php" class="active">
-                        <i class="bi bi-speedometer2"></i> Dashboard
-                    </a>
-                    <a href="employees.php">
-                        <i class="bi bi-people"></i> Employees
-                    </a>
-                    <a href="add_employee.php">
-                        <i class="bi bi-person-plus"></i> Add Employee
-                    </a>
-                    <?php if ($role === 'admin'): ?>
-                    <a href="users.php">
-                        <i class="bi bi-person-gear"></i> Users
-                    </a>
-                    <?php endif; ?>
-                    <a href="logout.php">
-                        <i class="bi bi-box-arrow-right"></i> Logout
-                    </a>
-                </nav>
-            </div>
+            <?php include 'includes/sidebar.php'; ?>
 
             <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content">
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2>Dashboard</h2>
                     <div>
@@ -124,10 +81,46 @@ $role = $_SESSION['role'];
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- Recent Employees -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Recent Employees</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Job Title</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $stmt = $conn->query("SELECT * FROM employees ORDER BY id DESC LIMIT 5");
+                                    while ($employee = $stmt->fetch()) {
+                                        echo "<tr>";
+                                        echo "<td>" . htmlspecialchars($employee['first_name'] . ' ' . $employee['last_name']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($employee['department']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($employee['job_title']) . "</td>";
+                                        echo "<td><span class='badge bg-" . ($employee['status'] === 'active' ? 'success' : 'danger') . "'>" . 
+                                             htmlspecialchars($employee['status']) . "</span></td>";
+                                        echo "</tr>";
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html> 

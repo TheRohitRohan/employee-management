@@ -17,9 +17,9 @@ function isAdmin() {
 }
 
 // Redirect function
-function redirect($url) {
-    header("Location: " . BASE_URL . $url);
-    exit();
+function redirect($page) {
+    header('Location: ' . BASE_URL . '/' . $page);
+    exit;
 }
 
 // Generate CSRF token
@@ -32,7 +32,10 @@ function generateCSRFToken() {
 
 // Verify CSRF token
 function verifyCSRFToken($token) {
-    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+    if (!isset($_SESSION['csrf_token']) || $token !== $_SESSION['csrf_token']) {
+        return false;
+    }
+    return true;
 }
 
 // Format date
@@ -42,7 +45,7 @@ function formatDate($date) {
 
 // Format currency
 function formatCurrency($amount) {
-    return number_format($amount, 2);
+    return '$' . number_format($amount, 2);
 }
 
 // Redirect with message
@@ -62,5 +65,45 @@ function displayMessage() {
         return "<div class='alert alert-$type'>$message</div>";
     }
     return '';
+}
+
+// Function to sanitize input
+function sanitizeInput($data) {
+    $data = trim($data);
+    $data = stripslashes($data);
+    $data = htmlspecialchars($data);
+    return $data;
+}
+
+// Function to validate email
+function isValidEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL);
+}
+
+// Function to validate phone number
+function isValidPhone($phone) {
+    return preg_match('/^[0-9]{10}$/', $phone);
+}
+
+// Function to get department options
+function getDepartmentOptions($selected = '') {
+    $departments = ['IT', 'HR', 'Finance', 'Marketing', 'Operations'];
+    $options = '';
+    foreach ($departments as $dept) {
+        $selected_attr = ($selected === $dept) ? 'selected' : '';
+        $options .= "<option value=\"$dept\" $selected_attr>$dept</option>";
+    }
+    return $options;
+}
+
+// Function to get status options
+function getStatusOptions($selected = '') {
+    $statuses = ['active', 'inactive'];
+    $options = '';
+    foreach ($statuses as $status) {
+        $selected_attr = ($selected === $status) ? 'selected' : '';
+        $options .= "<option value=\"$status\" $selected_attr>$status</option>";
+    }
+    return $options;
 }
 ?> 
