@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/config.php';
 require_once '../includes/functions.php';
+require_once '../includes/db.php';
 
 // Check if user is logged in
 if (!isLoggedIn()) {
@@ -17,7 +18,6 @@ if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQ
 }
 
 // Database connection
-require_once '../includes/db.php';
 $database = new Database();
 $conn = $database->getConnection();
 

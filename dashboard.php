@@ -1,15 +1,21 @@
 <?php
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
+require_once 'includes/db.php';
 
 // Check if user is logged in
 if (!isLoggedIn()) {
     redirect('login.php');
 }
 
-// Get user information
-$username = $_SESSION['username'];
-$role = $_SESSION['role'];
+// Get admin information
+$username = $_SESSION['username'] ?? 'Admin';
+
+// Get total employees count
+$database = new Database();
+$conn = $database->getConnection();
+$stmt = $conn->query("SELECT COUNT(*) as total FROM employees");
+$total_employees = $stmt->fetch()['total'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -28,91 +34,25 @@ $role = $_SESSION['role'];
 
             <!-- Main Content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Dashboard</h2>
-                    <div>
-                        Welcome, <?php echo htmlspecialchars($username); ?> 
-                        (<?php echo ucfirst($role); ?>)
-                    </div>
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Dashboard</h1>
                 </div>
 
-                <!-- Dashboard Content -->
                 <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Welcome, <?php echo htmlspecialchars($username); ?></h5>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-md-4 mb-4">
                         <div class="card bg-primary text-white">
                             <div class="card-body">
                                 <h5 class="card-title">Total Employees</h5>
-                                <h2 class="card-text">
-                                    <?php
-                                    require_once 'includes/db.php';
-                                    $database = new Database();
-                                    $conn = $database->getConnection();
-                                    $count = $conn->query("SELECT COUNT(*) as count FROM employees")->fetch()['count'];
-                                    echo $count;
-                                    ?>
-                                </h2>
+                                <h2 class="card-text"><?php echo $total_employees; ?></h2>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card bg-success text-white">
-                            <div class="card-body">
-                                <h5 class="card-title">Active Employees</h5>
-                                <h2 class="card-text">
-                                    <?php
-                                    $count = $conn->query("SELECT COUNT(*) as count FROM employees WHERE status = 'active'")->fetch()['count'];
-                                    echo $count;
-                                    ?>
-                                </h2>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card bg-info text-white">
-                            <div class="card-body">
-                                <h5 class="card-title">Departments</h5>
-                                <h2 class="card-text">
-                                    <?php
-                                    $count = $conn->query("SELECT COUNT(DISTINCT department) as count FROM employees")->fetch()['count'];
-                                    echo $count;
-                                    ?>
-                                </h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Employees -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Recent Employees</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Department</th>
-                                        <th>Job Title</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    $stmt = $conn->query("SELECT * FROM employees ORDER BY id DESC LIMIT 5");
-                                    while ($employee = $stmt->fetch()) {
-                                        echo "<tr>";
-                                        echo "<td>" . htmlspecialchars($employee['first_name'] . ' ' . $employee['last_name']) . "</td>";
-                                        echo "<td>" . htmlspecialchars($employee['department']) . "</td>";
-                                        echo "<td>" . htmlspecialchars($employee['job_title']) . "</td>";
-                                        echo "<td><span class='badge bg-" . ($employee['status'] === 'active' ? 'success' : 'danger') . "'>" . 
-                                             htmlspecialchars($employee['status']) . "</span></td>";
-                                        echo "</tr>";
-                                    }
-                                    ?>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 </div>

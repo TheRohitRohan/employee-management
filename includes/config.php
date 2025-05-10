@@ -16,10 +16,7 @@ define('DB_PASS', getenv('DB_PASS') ?: '');
 define('BASE_URL', getenv('BASE_URL') ?: 'http://localhost/Task1');
 define('APP_NAME', 'Employee Management System');
 
-// CSRF token configuration
-define('CSRF_TOKEN_SECRET', 'your-secret-key-here');
-
-// Session configuration - must be set before session starts
+// Session configuration
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
 ini_set('session.cookie_secure', 1);

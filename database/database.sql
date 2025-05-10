@@ -1,16 +1,9 @@
--- Create database
-CREATE DATABASE IF NOT EXISTS employee_management;
-USE employee_management;
-
--- Create users table
-CREATE TABLE IF NOT EXISTS users (
+-- Create admin table
+CREATE TABLE IF NOT EXISTS admin (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    role ENUM('admin', 'user') DEFAULT 'user',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP NULL
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create employees table
@@ -30,5 +23,5 @@ CREATE TABLE IF NOT EXISTS employees (
 );
 
 -- Insert default admin user (password: admin123)
-INSERT INTO users (username, password, email, role) 
-VALUES ('admin', 'admin123', 'admin@example.com', 'admin'); 
+INSERT INTO admin (username, password) 
+VALUES ('admin', 'admin123'); 

@@ -44,7 +44,7 @@ $departments = $stmt->fetchAll(PDO::FETCH_COLUMN);
                 <div class="card mb-4">
                     <div class="card-body">
                         <form id="searchForm" class="row g-3">
-                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                            <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                             
                             <div class="col-md-4">
                                 <input type="text" class="form-control" name="search" placeholder="Search by name, email, or phone">
@@ -114,6 +114,7 @@ $departments = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="assets/js/employee.js"></script>
     <script>
         // Initial load of employees

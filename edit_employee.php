@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
+require_once 'includes/db.php';
 
 // Check if user is logged in
 if (!isLoggedIn()) {
@@ -99,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container-fluid">
@@ -124,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="card">
                     <div class="card-body">
-                        <form id="editEmployeeForm">
+                        <form id="editEmployeeForm" method="POST">
                             <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                             <input type="hidden" name="id" value="<?php echo $employee['id']; ?>">
                             
@@ -133,11 +135,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <label for="first_name" class="form-label">First Name *</label>
                                     <input type="text" class="form-control" id="first_name" name="first_name" 
                                            value="<?php echo htmlspecialchars($employee['first_name']); ?>" required>
+                                    <div class="invalid-feedback">Please enter first name</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="last_name" class="form-label">Last Name *</label>
                                     <input type="text" class="form-control" id="last_name" name="last_name" 
                                            value="<?php echo htmlspecialchars($employee['last_name']); ?>" required>
+                                    <div class="invalid-feedback">Please enter last name</div>
                                 </div>
                             </div>
 
@@ -146,11 +150,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <label for="email" class="form-label">Email *</label>
                                     <input type="email" class="form-control" id="email" name="email" 
                                            value="<?php echo htmlspecialchars($employee['email']); ?>" required>
+                                    <div class="invalid-feedback">Please enter a valid email address</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="phone" class="form-label">Phone *</label>
                                     <input type="tel" class="form-control" id="phone" name="phone" 
                                            value="<?php echo htmlspecialchars($employee['phone']); ?>" required>
+                                    <div class="invalid-feedback">Please enter phone number</div>
                                 </div>
                             </div>
 
@@ -165,11 +171,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <option value="Marketing" <?php echo $employee['department'] === 'Marketing' ? 'selected' : ''; ?>>Marketing</option>
                                         <option value="Sales" <?php echo $employee['department'] === 'Sales' ? 'selected' : ''; ?>>Sales</option>
                                     </select>
+                                    <div class="invalid-feedback">Please select a department</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="job_title" class="form-label">Job Title *</label>
                                     <input type="text" class="form-control" id="job_title" name="job_title" 
                                            value="<?php echo htmlspecialchars($employee['job_title']); ?>" required>
+                                    <div class="invalid-feedback">Please enter job title</div>
                                 </div>
                             </div>
 
@@ -178,11 +186,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <label for="hire_date" class="form-label">Hire Date *</label>
                                     <input type="date" class="form-control" id="hire_date" name="hire_date" 
                                            value="<?php echo htmlspecialchars($employee['hire_date']); ?>" required>
+                                    <div class="invalid-feedback">Please select hire date</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="salary" class="form-label">Salary *</label>
                                     <input type="number" class="form-control" id="salary" name="salary" 
                                            value="<?php echo htmlspecialchars($employee['salary']); ?>" required>
+                                    <div class="invalid-feedback">Please enter salary</div>
                                 </div>
                             </div>
 
@@ -208,6 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="assets/js/employee.js"></script>
 </body>
 </html> 

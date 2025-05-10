@@ -36,11 +36,13 @@ const EmployeeManager = {
 
     // Search employees
     searchEmployees: function(params) {
+        const csrfToken = $('#csrf_token').val();
         return $.ajax({
             url: 'ajax/employee_actions.php',
             type: 'POST',
             data: {
                 action: 'search',
+                csrf_token: csrfToken,
                 ...params
             },
             dataType: 'json'
@@ -51,6 +53,11 @@ const EmployeeManager = {
     updateEmployeeTable: function(employees) {
         const tbody = $('#employeeTable tbody');
         tbody.empty();
+
+        if (employees.length === 0) {
+            tbody.append('<tr><td colspan="9" class="text-center">No employees found</td></tr>');
+            return;
+        }
 
         employees.forEach(employee => {
             const row = `
@@ -120,21 +127,53 @@ const EmployeeManager = {
 
 // Document Ready Handler
 $(document).ready(function() {
+    // Load initial employees
+    EmployeeManager.searchEmployees({})
+        .done(function(response) {
+            if (response.success) {
+                EmployeeManager.updateEmployeeTable(response.employees);
+                EmployeeManager.updatePagination(response.pagination);
+            }
+        })
+        .fail(function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error occurred while loading employees'
+            });
+        });
+
     // Handle search form submission
     $('#searchForm').on('submit', function(e) {
         e.preventDefault();
-        const formData = $(this).serialize();
-        EmployeeManager.searchEmployees(formData)
+        const formData = $(this).serializeArray();
+        const params = {};
+        
+        formData.forEach(item => {
+            if (item.value) {
+                params[item.name] = item.value;
+            }
+        });
+
+        EmployeeManager.searchEmployees(params)
             .done(function(response) {
                 if (response.success) {
                     EmployeeManager.updateEmployeeTable(response.employees);
                     EmployeeManager.updatePagination(response.pagination);
                 } else {
-                    alert(response.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message
+                    });
                 }
             })
             .fail(function() {
-                alert('Error occurred while searching employees');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error occurred while searching employees'
+                });
             });
     });
 
@@ -142,8 +181,17 @@ $(document).ready(function() {
     $(document).on('click', '.pagination .page-link', function(e) {
         e.preventDefault();
         const page = $(this).data('page');
-        const formData = $('#searchForm').serialize() + '&page=' + page;
-        EmployeeManager.searchEmployees(formData)
+        const formData = $('#searchForm').serializeArray();
+        const params = {};
+        
+        formData.forEach(item => {
+            if (item.value) {
+                params[item.name] = item.value;
+            }
+        });
+        params.page = page;
+
+        EmployeeManager.searchEmployees(params)
             .done(function(response) {
                 if (response.success) {
                     EmployeeManager.updateEmployeeTable(response.employees);
@@ -156,22 +204,45 @@ $(document).ready(function() {
     $(document).on('click', '.delete-employee', function() {
         const id = $(this).data('id');
         const csrfToken = $('#csrf_token').val();
-
-        if (confirm('Are you sure you want to delete this employee?')) {
-            EmployeeManager.deleteEmployee(id, csrfToken)
-                .done(function(response) {
-                    if (response.success) {
-                        alert(response.message);
-                        // Refresh the employee list
-                        $('#searchForm').submit();
-                    } else {
-                        alert(response.message);
-                    }
-                })
-                .fail(function() {
-                    alert('Error occurred while deleting employee');
-                });
-        }
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                EmployeeManager.deleteEmployee(id, csrfToken)
+                    .done(function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: response.message
+                            }).then(() => {
+                                // Refresh the employee list
+                                $('#searchForm').submit();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message
+                            });
+                        }
+                    })
+                    .fail(function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error occurred while deleting employee'
+                        });
+                    });
+            }
+        });
     });
 
     // Handle add employee form submission
@@ -183,14 +254,27 @@ $(document).ready(function() {
         EmployeeManager.addEmployee(formData)
             .done(function(response) {
                 if (response.success) {
-                    alert(response.message);
-                    window.location.href = 'employees.php';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message
+                    }).then(() => {
+                        window.location.href = 'employees.php';
+                    });
                 } else {
-                    alert(response.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message
+                    });
                 }
             })
             .fail(function() {
-                alert('Error occurred while adding employee');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error occurred while adding employee'
+                });
             });
     });
 
@@ -200,17 +284,36 @@ $(document).ready(function() {
         const formData = new FormData(this);
         formData.append('action', 'edit');
 
-        EmployeeManager.editEmployee(formData)
-            .done(function(response) {
+        $.ajax({
+            url: 'ajax/employee_actions.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
                 if (response.success) {
-                    alert(response.message);
-                    window.location.href = 'employees.php';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message
+                    }).then(() => {
+                        window.location.href = 'employees.php';
+                    });
                 } else {
-                    alert(response.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message
+                    });
                 }
-            })
-            .fail(function() {
-                alert('Error occurred while updating employee');
-            });
+            },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while updating the employee.'
+                });
+            }
+        });
     });
 }); 

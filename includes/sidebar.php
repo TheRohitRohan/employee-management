@@ -22,13 +22,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <i class="fas fa-user-plus"></i> Add Employee
                 </a>
             </li>
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-            <li class="nav-item">
-                <a class="nav-link text-white <?php echo $current_page === 'users.php' ? 'active' : ''; ?>" href="users.php">
-                    <i class="fas fa-user-cog"></i> Users
-                </a>
-            </li>
-            <?php endif; ?>
             <li class="nav-item">
                 <a class="nav-link text-white" href="logout.php">
                     <i class="fas fa-sign-out-alt"></i> Logout

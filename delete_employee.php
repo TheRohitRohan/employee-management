@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
+require_once 'includes/db.php';
 
 // Check if user is logged in
 if (!isLoggedIn()) {
@@ -15,7 +16,6 @@ if ($id <= 0) {
 }
 
 // Database connection
-require_once 'includes/db.php';
 $database = new Database();
 $conn = $database->getConnection();
 
