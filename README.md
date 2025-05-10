@@ -36,7 +36,7 @@ A modern, secure, and user-friendly Employee Management System built with PHP, M
 
 1. Clone the repository:
    ```bash
-   git clone [repository-url]
+   git clone https://github.com/TheRohitRohan/employee-management.git
    ```
 
 2. Set up your web server to point to the project directory
@@ -124,13 +124,6 @@ The system implements CSRF (Cross-Site Request Forgery) protection:
 4. Push to the branch
 5. Create a new Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, please open an issue in the repository or contact the maintainers.
 
 ## Acknowledgments
 
